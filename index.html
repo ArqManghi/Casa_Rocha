@@ -1,1 +1,1623 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <!-- Content Security Policy -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' blob: data: https://www.google-analytics.com; media-src 'self'; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com; frame-ancestors 'none';">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recorrido Virtual 360°</title>
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-0Y4YQQZ16K"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-0Y4YQQZ16K');
+
+    /* Helper para enviar eventos custom */
+    function gaEvento(nombre, params) {
+      try { gtag('event', nombre, params || {}); } catch(e) {}
+    }
+  </script>
+
+  <!-- Pannellum 2.5.7 — fix CVE-2026-27210 -->
+  <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.7/build/pannellum.js"
+    crossorigin="anonymous"></script>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/pannellum@2.5.7/build/pannellum.css"
+    crossorigin="anonymous"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Outfit:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+    :root {
+      --gold: #c8a96e;
+      --gold-dim: rgba(200,169,110,0.15);
+      --gold-border: rgba(200,169,110,0.3);
+      --bg: #080808;
+      --text: #f0ece4;
+      --text-dim: rgba(240,236,228,0.45);
+      --text-faint: rgba(240,236,228,0.2);
+      --border: rgba(255,255,255,0.07);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Outfit',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+
+    #intro { position:fixed; inset:0; z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; transition:opacity 1.2s ease, visibility 1.2s; }
+    #intro.out { opacity:0; visibility:hidden; pointer-events:none; }
+    #intro-bg { position:absolute; inset:-5%; background-image:url('images/living.jpg'); background-size:cover; background-position:center; filter:brightness(0); animation:intro-drift 18s ease-in-out infinite alternate; }
+    @keyframes intro-drift { from{transform:scale(1.05) translateX(0)} to{transform:scale(1.05) translateX(-2%)} }
+    #intro::after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at center, transparent 0%, rgba(8,8,8,0.7) 100%); pointer-events:none; }
+    .intro-content { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; text-align:center; }
+    .intro-line { width:1px; height:60px; background:linear-gradient(to bottom,transparent,var(--gold)); margin-bottom:28px; animation:grow-line 1s ease forwards 0.3s; transform-origin:top; transform:scaleY(0); }
+    @keyframes grow-line { to{transform:scaleY(1)} }
+    .intro-estudio { font-size:11px; font-weight:300; letter-spacing:4px; text-transform:uppercase; color:var(--gold); margin-bottom:20px; opacity:0; animation:fadein 0.8s ease forwards 0.7s; }
+    @keyframes fadein { to{opacity:1} }
+    .intro-divider { width:40px; height:1px; background:rgba(200,169,110,0.4); margin:0 auto 24px; opacity:0; animation:fadein 0.8s ease forwards 0.9s; }
+    .intro-titulo { font-family:'Cormorant Garamond',serif; font-size:clamp(42px,7vw,78px); font-weight:300; line-height:1.1; letter-spacing:2px; color:var(--text); opacity:0; animation:rise 1s ease forwards 1s; }
+    @keyframes rise { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .intro-subtitulo { font-family:'Cormorant Garamond',serif; font-size:clamp(16px,2.5vw,22px); font-weight:300; font-style:italic; color:var(--text-dim); margin-top:8px; letter-spacing:2px; opacity:0; animation:fadein 0.8s ease forwards 1.3s; }
+    .intro-meta { margin-top:28px; display:flex; align-items:center; gap:20px; opacity:0; animation:fadein 0.8s ease forwards 1.5s; }
+    .intro-meta-item { font-size:10px; letter-spacing:2.5px; text-transform:uppercase; color:var(--text-faint); font-weight:300; }
+    .intro-meta-dot { width:3px; height:3px; border-radius:50%; background:var(--gold-border); }
+    .intro-btn { margin-top:52px; position:relative; cursor:pointer; background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:12px; opacity:0; animation:fadein 0.8s ease forwards 1.9s; transition:all 0.3s; }
+    .intro-btn:hover .btn-ring { transform:scale(1.1); border-color:var(--gold); }
+    .intro-btn:hover .btn-label { color:var(--text); letter-spacing:5px; }
+    .btn-ring { width:56px; height:56px; border-radius:50%; border:1px solid rgba(200,169,110,0.5); display:flex; align-items:center; justify-content:center; transition:all 0.4s; }
+    .btn-arrow { width:0; height:0; border-left:7px solid transparent; border-right:7px solid transparent; border-top:10px solid var(--gold); margin-top:3px; }
+    .btn-label { font-size:10px; letter-spacing:4px; text-transform:uppercase; font-weight:300; color:var(--text-dim); transition:all 0.4s; }
+    .intro-line-bottom { width:1px; height:60px; background:linear-gradient(to top,transparent,var(--gold)); margin-top:40px; animation:grow-line-b 1s ease forwards 2s; transform-origin:bottom; transform:scaleY(0); }
+    @keyframes grow-line-b { to{transform:scaleY(1)} }
+    .corner { position:absolute; width:40px; height:40px; opacity:0; animation:fadein 0.8s ease forwards 0.5s; }
+    .corner-tl { top:32px; left:32px; border-top:1px solid var(--gold-border); border-left:1px solid var(--gold-border); }
+    .corner-tr { top:32px; right:32px; border-top:1px solid var(--gold-border); border-right:1px solid var(--gold-border); }
+    .corner-bl { bottom:32px; left:32px; border-bottom:1px solid var(--gold-border); border-left:1px solid var(--gold-border); }
+    .corner-br { bottom:32px; right:32px; border-bottom:1px solid var(--gold-border); border-right:1px solid var(--gold-border); }
+
+    /* ── BOTÓN FULLSCREEN ── */
+    #fullscreen-btn {
+      position: fixed;
+      bottom: 110px;
+      left: 36px;
+      z-index: 200;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(8,8,8,0.55);
+      border: 1px solid rgba(200,169,110,0.3);
+      backdrop-filter: blur(6px);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease, border-color 0.25s, background 0.25s, transform 0.25s;
+    }
+    #fullscreen-btn.visible { opacity: 1; pointer-events: all; }
+    #fullscreen-btn:hover {
+      border-color: var(--gold);
+      background: rgba(200,169,110,0.12);
+      transform: scale(1.08);
+    }
+    #fullscreen-btn svg {
+      width: 15px; height: 15px;
+      fill: none;
+      stroke: var(--gold);
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    @media (max-width: 600px) {
+      #fullscreen-btn { display: none !important; }
+    }
+
+    /* ── BOTÓN COMPARTIR ── */
+    #share-btn {
+      position: fixed;
+      bottom: 220px;
+      left: 36px;
+      z-index: 200;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(8,8,8,0.55);
+      border: 1px solid rgba(200,169,110,0.3);
+      backdrop-filter: blur(6px);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease, border-color 0.25s, background 0.25s, transform 0.25s;
+    }
+    #share-btn.visible { opacity: 1; pointer-events: all; }
+    #share-btn:hover {
+      border-color: var(--gold);
+      background: rgba(200,169,110,0.12);
+      transform: scale(1.08);
+    }
+    #share-btn svg {
+      width: 15px; height: 15px;
+      fill: none;
+      stroke: var(--gold);
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Popup desktop */
+    #share-popup {
+      position: fixed;
+      bottom: 220px;
+      left: 88px;
+      z-index: 210;
+      background: rgba(8,8,8,0.92);
+      border: 1px solid rgba(200,169,110,0.3);
+      border-radius: 4px;
+      padding: 10px 6px;
+      backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(-8px);
+      transition: opacity 0.25s, visibility 0.25s, transform 0.25s;
+    }
+    #share-popup.open { opacity: 1; visibility: visible; transform: translateX(0); }
+    .share-opt {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: background 0.2s;
+      text-decoration: none;
+    }
+    .share-opt:hover { background: rgba(200,169,110,0.1); }
+    .share-opt svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .share-opt span {
+      font-family: 'Outfit', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      white-space: nowrap;
+    }
+    .share-opt:hover span { color: var(--text); }
+    #share-copied {
+      position: fixed;
+      bottom: 185px;
+      left: 36px;
+      z-index: 220;
+      background: rgba(200,169,110,0.15);
+      border: 1px solid rgba(200,169,110,0.4);
+      border-radius: 3px;
+      padding: 5px 12px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    #share-copied.show { opacity: 1; }
+
+    @media (max-width: 600px) {
+      #share-btn { bottom: 155px; left: 12px; width: 28px; height: 28px; }
+      #share-btn svg { width: 11px; height: 11px; }
+      #share-popup { display: none !important; }
+    }
+
+    /* ── BOTÓN DE AUDIO ── */
+    #audio-toggle {
+      position: fixed;
+      bottom: 165px;
+      left: 36px;
+      z-index: 200;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(8,8,8,0.55);
+      border: 1px solid rgba(200,169,110,0.3);
+      backdrop-filter: blur(6px);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease, border-color 0.25s, background 0.25s, transform 0.25s;
+    }
+    #audio-toggle.visible { opacity: 1; pointer-events: all; }
+    #audio-toggle:hover {
+      border-color: var(--gold);
+      background: rgba(200,169,110,0.12);
+      transform: scale(1.08);
+    }
+    #audio-toggle svg {
+      width: 15px; height: 15px;
+      fill: none;
+      stroke: var(--gold);
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: stroke 0.25s;
+    }
+    #audio-toggle.muted .audio-wave { opacity: 0.25; }
+    #audio-toggle.muted .audio-cross { opacity: 1; }
+    #audio-toggle .audio-cross { opacity: 0; transition: opacity 0.25s; stroke: rgba(240,236,228,0.5); }
+    #audio-toggle .audio-wave { transition: opacity 0.25s; }
+
+    #audio-toggle:not(.muted)::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 50%;
+      border: 1px solid rgba(200,169,110,0.4);
+      animation: audio-pulse 2.4s ease-out infinite;
+    }
+    @keyframes audio-pulse {
+      0%   { transform: scale(0.95); opacity: 0.8; }
+      100% { transform: scale(1.25); opacity: 0; }
+    }
+
+    @media (max-width: 600px) {
+      #audio-toggle { bottom: 115px; left: 12px; width: 28px; height: 28px; }
+      #audio-toggle svg { width: 11px; height: 11px; }
+    }
+
+    /* ── INDICADOR PRIMERA VEZ ── */
+    #hint-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 250;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.5s ease, visibility 0.5s;
+    }
+    #hint-overlay.show { opacity: 1; visibility: visible; }
+    #hint-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 20px 32px;
+      background: rgba(8,8,8,0.55);
+      border: 1px solid rgba(200,169,110,0.25);
+      border-radius: 6px;
+      backdrop-filter: blur(8px);
+    }
+    #hint-icon {
+      width: 70px;
+      height: 40px;
+      position: relative;
+    }
+    #hint-icon svg {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 28px;
+      height: 28px;
+      fill: none;
+      stroke: var(--gold);
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      animation: hint-slide 2.2s ease-in-out infinite;
+    }
+    @keyframes hint-slide {
+      0%   { left: 0;    opacity: 0; }
+      15%  {             opacity: 1; }
+      85%  {             opacity: 1; }
+      100% { left: 42px; opacity: 0; }
+    }
+    #hint-arrow-left, #hint-arrow-right {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      border-top: 1.5px solid rgba(200,169,110,0.5);
+      border-left: 1.5px solid rgba(200,169,110,0.5);
+    }
+    #hint-arrow-left  { left:  -2px; transform: translateY(-50%) rotate(-45deg); }
+    #hint-arrow-right { right: -2px; transform: translateY(-50%) rotate(135deg); }
+    #hint-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+    #hint-text-sub {
+      font-family: 'Outfit', sans-serif;
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 1.5px;
+      color: var(--text-dim);
+      margin-top: -6px;
+    }
+
+    /* LIGHTBOX */
+    #lightbox { position:fixed; inset:0; z-index:3000; display:flex; align-items:center; justify-content:center; opacity:0; visibility:hidden; pointer-events:none; transition:opacity 0.4s ease, visibility 0.4s; }
+    #lightbox.open { opacity:1; visibility:visible; pointer-events:all; }
+    #lb-backdrop { position:absolute; inset:0; background:rgba(6,6,6,0.92); backdrop-filter:blur(12px); cursor:pointer; }
+    #lb-container { position:relative; z-index:1; width:min(92vw,1400px); max-height:80vh; display:flex; flex-direction:column; transform:translateY(18px) scale(0.97); transition:transform 0.45s cubic-bezier(0.22,1,0.36,1); }
+    #lightbox.open #lb-container { transform:translateY(0) scale(1); }
+    #lb-header { display:flex; align-items:flex-end; justify-content:space-between; padding:0 0 16px; border-bottom:1px solid rgba(200,169,110,0.18); margin-bottom:20px; }
+    #lb-eyebrow { font-size:9px; letter-spacing:4px; text-transform:uppercase; color:var(--gold); font-weight:300; margin-bottom:6px; }
+    #lb-title { font-family:'Cormorant Garamond',serif; font-size:clamp(22px,3.5vw,32px); font-weight:300; letter-spacing:1px; color:var(--text); }
+    #lb-counter { font-family:'Cormorant Garamond',serif; font-size:13px; color:var(--text-dim); letter-spacing:2px; }
+    #lb-close { background:none; border:1px solid rgba(200,169,110,0.25); border-radius:2px; cursor:pointer; width:38px; height:38px; display:flex; align-items:center; justify-content:center; transition:all 0.25s; margin-left:20px; flex-shrink:0; }
+    #lb-close:hover { border-color:var(--gold); background:rgba(200,169,110,0.08); }
+    #lb-close svg { width:14px; height:14px; stroke:var(--gold); stroke-width:1.5; }
+    #lb-img-wrap { position:relative; width:100%; overflow:hidden; border:1px solid rgba(255,255,255,0.05); background:#0e0e0e; cursor:zoom-in; }
+    #lb-img-wrap.zoomed { cursor:grab; }
+    #lb-img-wrap.zoomed.dragging { cursor:grabbing; }
+    #lb-img { width:100%; max-height:80vh; object-fit:contain; display:block; transition:opacity 0.3s ease; transform-origin:center center; }
+    #lb-img.fade { opacity:0; }
+    .lb-nav { position:absolute; top:50%; transform:translateY(-50%); background:rgba(8,8,8,0.7); border:1px solid rgba(200,169,110,0.2); width:44px; height:44px; border-radius:2px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.25s; z-index:2; }
+    .lb-nav:hover { background:rgba(200,169,110,0.12); border-color:var(--gold); }
+    .lb-nav svg { width:16px; height:16px; stroke:var(--gold); stroke-width:1.5; fill:none; }
+    #lb-prev { left:12px; }
+    #lb-next { right:12px; }
+    #lb-caption { margin-top:16px; display:flex; align-items:flex-start; justify-content:space-between; gap:20px; }
+    #lb-caption-text { font-size:12px; font-weight:300; line-height:1.6; color:var(--text-dim); letter-spacing:0.3px; max-width:70%; }
+    #lb-thumbs { display:flex; gap:8px; align-items:center; flex-shrink:0; }
+    .lb-thumb { width:52px; height:36px; object-fit:cover; border:1px solid rgba(255,255,255,0.07); cursor:pointer; opacity:0.45; transition:all 0.25s; border-radius:1px; }
+    .lb-thumb.active { opacity:1; border-color:var(--gold); }
+    .lb-thumb:hover:not(.active) { opacity:0.7; }
+
+    /* ── MINI MAPA ── */
+    #minimap {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+      position: fixed;
+      bottom: 76px;
+      right: 36px;
+      z-index: 200;
+      background: rgba(8,8,8,0.45);
+      border: 0.5px solid rgba(200,169,110,0.3);
+      border-radius: 4px;
+      padding: 10px;
+      backdrop-filter: blur(6px);
+      width: 450px;
+    }
+    #minimap-label {
+      font-size: 8px; letter-spacing: 2.5px; text-transform: uppercase;
+      color: rgba(200,169,110,0.6); font-weight: 300; margin-bottom: 8px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    #minimap-toggle {
+      cursor: pointer; color: rgba(240,236,228,0.3); font-size: 10px;
+      background: none; border: none; padding: 0; line-height: 1;
+    }
+    #minimap-toggle:hover { color: var(--gold); }
+    #minimap-img-wrap {
+      position: relative; width: 100%;
+    }
+    #minimap-img {
+      width: 100%; display: block;
+      opacity: 0.9;
+    }
+    #minimap-cone-wrap {
+      position: absolute;
+      width: 58px; height: 58px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      transition: left 0.5s cubic-bezier(0.4,0,0.2,1), top 0.5s cubic-bezier(0.4,0,0.2,1);
+      display: none;
+    }
+    #minimap-cone {
+      width: 100%; height: 100%;
+      display: block;
+      transition: transform 0.12s linear;
+      transform-origin: center;
+    }
+    #minimap-scene-name {
+      font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--text-dim); font-weight: 300; margin-top: 8px; text-align: center;
+    }
+    #minimap.collapsed { width: auto !important; }
+    #minimap.collapsed #minimap-img-wrap { display: none; }
+    #minimap.collapsed #minimap-scene-name { display: none; }
+    @media (max-width: 600px) {
+      /* ── INTRO ── */
+      .intro-line, .intro-line-bottom { height: 28px; }
+      .intro-estudio { font-size: 9px; letter-spacing: 3px; margin-bottom: 10px; }
+      .intro-titulo { font-size: clamp(30px, 9vw, 46px); }
+      .intro-subtitulo { font-size: 13px; letter-spacing: 1.5px; }
+      .intro-meta { gap: 10px; margin-top: 16px; }
+      .intro-meta-item { font-size: 8px; letter-spacing: 1.5px; }
+      .intro-btn { margin-top: 28px; }
+      .btn-ring { width: 46px; height: 46px; }
+      .corner { width: 20px; height: 20px; }
+      .corner-tl { top: 14px; left: 14px; }
+      .corner-tr { top: 14px; right: 14px; }
+      .corner-bl { bottom: 14px; left: 14px; }
+      .corner-br { bottom: 14px; right: 14px; }
+
+      /* ── HEADER — compacto, ocultar "Tour Virtual" ── */
+      header { padding: 10px 16px !important; }
+      .header-tour-label { display: none !important; }
+      .header-logo { font-size: 16px !important; letter-spacing: 2px !important; }
+      .header-center-title { font-size: 11px !important; letter-spacing: 2px !important; }
+      #scene-label { font-size: 9px !important; letter-spacing: 1.5px !important; margin-top: 1px !important; }
+
+      /* ── PANEL INFERIOR — compacto ── */
+      .bottom-panel-wrap { padding: 18px 14px 8px !important; }
+      .bottom-panel-label { display: none !important; }
+      #scenes-grid { gap: 5px !important; }
+      #scenes-grid button { padding: 5px 9px !important; font-size: 10px !important; gap: 5px !important; }
+      #scenes-grid button span { font-size: 11px !important; }
+      .btn-planta { padding: 5px 9px !important; font-size: 10px !important; }
+      .footer-pie { padding: 6px 0 8px !important; }
+      .footer-estudio-sep { display: none !important; }
+      .footer-estudio-name { display: none !important; }
+      .footer-logo { font-size: 11px !important; letter-spacing: 2px !important; }
+      .footer-contacto-email { display: none !important; }
+      .footer-contacto-sep { display: none !important; }
+      .footer-contacto-wa span { font-size: 0 !important; }
+      .footer-contacto-wa::after { content: 'Consultar'; font-size: 9px; font-weight: 300; letter-spacing: 1px; color: #c8a96e; font-family: 'Outfit', sans-serif; }
+
+      /* ── MINI MAPA — oculto en mobile ── */
+      #minimap { display: none !important; }
+
+      /* ── HINT — más compacto en mobile ── */
+      #hint-box { padding: 16px 24px; gap: 10px; }
+      #hint-text { font-size: 10px; letter-spacing: 2px; }
+      #hint-text-sub { font-size: 8px; letter-spacing: 1px; }
+      #hint-icon { width: 60px; height: 32px; }
+      #hint-icon svg { width: 22px; height: 22px; }
+      @keyframes hint-slide {
+        0%   { left: 0;    opacity: 0; }
+        15%  {             opacity: 1; }
+        85%  {             opacity: 1; }
+        100% { left: 38px; opacity: 0; }
+      }
+
+      /* ── LIGHTBOX ── */
+      #lb-container { width: 96vw !important; max-height: 96vh; }
+      #lb-header { padding: 0 0 8px; margin-bottom: 10px; }
+      #lb-eyebrow { font-size: 8px; letter-spacing: 3px; }
+      #lb-title { font-size: 16px !important; }
+      #lb-counter { font-size: 11px; }
+      #lb-close { width: 32px; height: 32px; }
+      #lb-img { max-height: 55vh; }
+      #lb-caption { flex-direction: column; gap: 8px; margin-top: 10px; }
+      #lb-caption-text { max-width: 100%; font-size: 10px; line-height: 1.5; }
+      #lb-thumbs { flex-wrap: wrap; gap: 6px; }
+      .lb-thumb { width: 40px; height: 28px; }
+      .lb-nav { width: 32px; height: 32px; }
+      .lb-nav svg { width: 13px; height: 13px; }
+    }
+
+    #lightbox.fullscreen #lb-container { width: min(96vw, 1400px); }
+    #lightbox.fullscreen #lb-img { max-height: 92vh; }
+
+    /* ── LANDSCAPE MOBILE ── */
+    @media (max-height: 500px) and (orientation: landscape) {
+      /* Header ultra compacto */
+      header { padding: 6px 16px !important; }
+      .header-logo { font-size: 14px !important; letter-spacing: 2px !important; }
+      .header-tour-label { display: none !important; }
+      .header-center-title { font-size: 10px !important; }
+      #scene-label { font-size: 8px !important; margin-top: 0 !important; }
+
+      /* Panel inferior mínimo */
+      .bottom-panel-wrap { padding: 8px 12px 0 !important; }
+      .bottom-panel-label { display: none !important; }
+      #scenes-grid { gap: 4px !important; }
+      #scenes-grid button { padding: 4px 8px !important; font-size: 9px !important; gap: 4px !important; }
+      #scenes-grid button span { font-size: 10px !important; }
+
+      /* Footer una línea mínima */
+      .footer-pie { padding: 3px 0 4px !important; }
+      .footer-logo { font-size: 9px !important; letter-spacing: 1.5px !important; }
+      .footer-estudio-sep, .footer-estudio-name { display: none !important; }
+      .footer-contacto-email { font-size: 8px !important; }
+      .footer-contacto-label, .footer-contacto-sep, .footer-contacto-tel { display: none !important; }
+
+      /* Minimap oculto */
+      #minimap { display: none !important; }
+
+      /* Botones flotantes más chicos y juntos */
+      #share-btn { width: 26px; height: 26px; bottom: 100px; left: 10px; }
+      #share-btn svg { width: 11px; height: 11px; }
+      #audio-toggle { width: 26px; height: 26px; bottom: 68px; left: 10px; }
+      #audio-toggle svg { width: 11px; height: 11px; }
+      #fullscreen-btn { width: 26px; height: 26px; bottom: 36px; left: 10px; }
+      #fullscreen-btn svg { width: 11px; height: 11px; }
+
+      /* Hotspots más chicos */
+      .hs-circle { width: 34px; height: 34px; }
+      .hs-circle.hs-lb { width: 30px; height: 30px; }
+      .hs-circle .hs-dot { width: 9px; height: 9px; }
+      .hs-circle.hs-lb .hs-icon { width: 20px; height: 20px; }
+      .hs-circle .hs-tooltip { font-size: 8px; padding: 3px 6px; }
+
+      /* Lightbox compacto */
+      #lb-container { max-height: 98vh; }
+      #lb-header { padding: 0 0 6px; margin-bottom: 6px; }
+      #lb-title { font-size: 14px !important; }
+      #lb-img { max-height: 50vh; }
+      #lb-caption { margin-top: 4px; gap: 4px; }
+      #lb-caption-text { font-size: 9px; }
+      .lb-nav { width: 28px; height: 28px; }
+    }
+
+    /* ── HOTSPOTS CIRCULARES ── */
+    .hs-circle {
+      position: absolute;
+      pointer-events: all;
+      transform: translate(-50%, -50%);
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .hs-circle .hs-ring {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px solid;
+      animation: hs-pulse 1.8s ease-out infinite;
+    }
+    .hs-circle .hs-ring.delay { animation-delay: 0.9s; }
+    .hs-circle .hs-dot {
+      position: relative;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      transition: transform 0.25s;
+      z-index: 2;
+    }
+    .hs-circle .hs-icon {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hs-circle:hover .hs-dot { transform: scale(1.4); }
+    .hs-circle:hover .hs-icon { transform: scale(1.15); }
+    @keyframes hs-pulse {
+      0%   { transform: scale(0.5); opacity: 1; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    /* Navegación — blanco */
+    .hs-circle.hs-nav .hs-ring { border-color: rgba(255,255,255,0.9); }
+    .hs-circle.hs-nav .hs-dot  { background: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.5); }
+
+    /* Lightbox — dorado, con ícono cámara */
+    .hs-circle.hs-lb { width: 44px; height: 44px; }
+    .hs-circle.hs-lb .hs-ring { border-color: rgba(200,169,110,0.9); }
+    .hs-circle.hs-lb .hs-icon {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: rgba(8,8,8,0.7);
+      border: 1.5px solid #c8a96e;
+      backdrop-filter: blur(4px);
+    }
+
+    /* Tooltip al hover */
+    .hs-circle .hs-tooltip {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(8,8,8,0.92);
+      border: 1px solid rgba(200,169,110,0.35);
+      color: #f0ece4;
+      font-family: 'Outfit', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 5px 10px;
+      border-radius: 2px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      backdrop-filter: blur(6px);
+    }
+    .hs-circle:hover .hs-tooltip { opacity: 1; }
+    .hs-circle.hs-lb .hs-tooltip { color: #c8a96e; }
+
+    @media (max-width: 600px) {
+      .hs-circle { width: 38px; height: 38px; }
+      .hs-circle.hs-lb { width: 34px; height: 34px; }
+      .hs-circle .hs-dot { width: 10px; height: 10px; }
+      .hs-circle.hs-lb .hs-icon { width: 22px; height: 22px; }
+      .hs-circle .hs-tooltip { font-size: 9px; padding: 4px 8px; letter-spacing: 1.2px; }
+    }
+</style>
+</head>
+<body>
+
+<div id="intro">
+  <div id="intro-bg"></div>
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+  <div class="intro-content">
+    <div class="intro-line"></div>
+    <div class="intro-estudio">Arq. Emanuel Manghi</div>
+    <div class="intro-divider"></div>
+    <h1 class="intro-titulo">Casa Libertad</h1>
+    <p class="intro-subtitulo">Recorrido Virtual 360°</p>
+    <div class="intro-meta">
+      <span class="intro-meta-item">Ampliación</span>
+      <div class="intro-meta-dot"></div>
+      <span class="intro-meta-item">Libertad</span>
+      <div class="intro-meta-dot"></div>
+      <span class="intro-meta-item">2025</span>
+    </div>
+    <button class="intro-btn" onclick="entrarAlTour()">
+      <div class="btn-ring"><div class="btn-arrow"></div></div>
+      <span class="btn-label">Ingresar</span>
+    </button>
+    <div class="intro-line-bottom"></div>
+  </div>
+</div>
+
+<div id="loading-screen" style="position:fixed;inset:0;background:#080808;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;opacity:0;visibility:hidden;transition:opacity 0.8s ease,visibility 0.8s;">
+  <div style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;letter-spacing:6px;text-transform:uppercase;color:#f0ece4;">Renders<span style="color:#c8a96e;">360</span></div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+    <div style="width:200px;height:1px;background:rgba(255,255,255,0.07);position:relative;overflow:hidden;">
+      <div id="loading-bar" style="position:absolute;left:-100%;top:0;width:100%;height:100%;background:#c8a96e;"></div>
+    </div>
+    <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(240,236,228,0.45);font-weight:300;">Cargando recorrido</div>
+  </div>
+</div>
+
+<div id="transition-overlay" style="position:fixed;inset:0;background:#080808;z-index:500;opacity:0;pointer-events:none;transition:opacity 0.35s ease;"></div>
+
+<header style="position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 36px;background:linear-gradient(to bottom,rgba(8,8,8,0.95),transparent);pointer-events:none;">
+  <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;letter-spacing:4px;text-transform:uppercase;pointer-events:all;cursor:pointer;" onclick="volverIntro()" class="header-logo">Renders<span style="color:#c8a96e;">360</span></div>
+  <div style="text-align:center;">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:300;letter-spacing:3px;text-transform:uppercase;color:rgba(240,236,228,0.45);">Casa Libertad</div>
+    <div id="scene-label" style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#c8a96e;font-weight:300;margin-top:3px;">Living / Comedor</div>
+  </div>
+  <div class="header-tour-label" style="font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(240,236,228,0.45);font-weight:300;">Tour Virtual</div>
+</header>
+
+<div id="panorama" style="width:100%;height:100vh;display:block;"></div>
+
+<!-- AUDIO AMBIENTE -->
+<audio id="audio-interior" loop preload="auto" src="audio/ambiente-interior.mp3"></audio>
+<audio id="audio-exterior" loop preload="auto" src="audio/ambiente-exterior.mp3"></audio>
+
+<!-- COMPARTIR -->
+<button id="share-btn" onclick="compartir()" title="Compartir recorrido">
+  <svg viewBox="0 0 24 24">
+    <circle cx="18" cy="5" r="3"/>
+    <circle cx="6" cy="12" r="3"/>
+    <circle cx="18" cy="19" r="3"/>
+    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+  </svg>
+</button>
+
+<div id="share-popup">
+  <a class="share-opt" id="share-wa" href="#" target="_blank" rel="noopener" onclick="gaEvento('share_click',{channel:'whatsapp',project:'Casa Martinez'});cerrarSharePopup()">
+    <svg viewBox="0 0 24 24" style="fill:#25D366;stroke:none;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    <span>WhatsApp</span>
+  </a>
+  <button class="share-opt" onclick="copiarLink()">
+    <svg viewBox="0 0 24 24" style="fill:none;stroke:var(--gold);stroke-width:1.6;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    <span>Copiar link</span>
+  </button>
+</div>
+
+<div id="share-copied">Link copiado</div>
+
+<button id="audio-toggle" class="muted" onclick="toggleAudio()" title="Activar / silenciar sonido">
+  <svg viewBox="0 0 24 24">
+    <path d="M11 5L6 9H3v6h3l5 4V5z"/>
+    <path class="audio-wave" d="M15.5 8.5a5 5 0 0 1 0 7"/>
+    <path class="audio-wave" d="M18.5 5.5a9 9 0 0 1 0 13"/>
+    <line class="audio-cross" x1="23" y1="9" x2="17" y2="15"/>
+    <line class="audio-cross" x1="17" y1="9" x2="23" y2="15"/>
+  </svg>
+</button>
+
+<!-- FULLSCREEN -->
+<button id="fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla completa">
+  <svg viewBox="0 0 24 24" id="fs-icon-expand">
+    <polyline points="15 3 21 3 21 9"/>
+    <polyline points="9 21 3 21 3 15"/>
+    <line x1="21" y1="3" x2="14" y2="10"/>
+    <line x1="3" y1="21" x2="10" y2="14"/>
+  </svg>
+  <svg viewBox="0 0 24 24" id="fs-icon-compress" style="display:none;">
+    <polyline points="4 14 10 14 10 20"/>
+    <polyline points="20 10 14 10 14 4"/>
+    <line x1="14" y1="10" x2="21" y2="3"/>
+    <line x1="3" y1="21" x2="10" y2="14"/>
+  </svg>
+</button>
+
+<!-- INDICADOR PRIMERA VEZ -->
+<div id="hint-overlay">
+  <div id="hint-box">
+    <div id="hint-icon">
+      <div id="hint-arrow-left"></div>
+      <svg viewBox="0 0 24 24">
+        <path d="M7 11V6a2 2 0 0 1 4 0v5"/>
+        <path d="M11 11V4a2 2 0 0 1 4 0v7"/>
+        <path d="M15 11V6a2 2 0 0 1 4 0v8a7 7 0 0 1-7 7h-1a7 7 0 0 1-7-7v-2a2 2 0 0 1 4 0"/>
+      </svg>
+      <div id="hint-arrow-right"></div>
+    </div>
+    <div id="hint-text">Arrastrá para mirar alrededor</div>
+    <div id="hint-text-sub">Tocá un círculo para cambiar de ambiente</div>
+  </div>
+</div>
+
+<div class="bottom-panel-wrap" style="position:fixed;bottom:0;left:0;right:0;z-index:100;background:linear-gradient(to top,rgba(8,8,8,0.98) 60%,transparent);padding:40px 36px 0;">
+
+  <!-- AMBIENTES -->
+  <div class="bottom-panel-label" style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(240,236,228,0.2);margin-bottom:14px;font-weight:400;">Ambientes del proyecto</div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
+    <div id="scenes-grid" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;flex:1;"></div>
+  </div>
+
+  <!-- PIE DE INTERFAZ -->
+  <div class="footer-pie" style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:7px 0 9px;border-top:0.5px solid rgba(255,255,255,0.07);">
+
+    <!-- IZQUIERDA — Renders360 con WhatsApp (contacto del estudio) -->
+    <a class="footer-left-link" href="https://wa.me/5491162413840?text=Hola%2C%20vi%20un%20recorrido%20virtual%20de%20Renders360%20y%20me%20interesa%20uno%20para%20mi%20proyecto." target="_blank" rel="noopener" onclick="gaEvento('contact_click',{contact_type:'whatsapp_estudio',project:'Casa Libertad'})" style="display:flex;align-items:center;gap:8px;text-decoration:none;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">
+      <svg class="footer-wa-icon" viewBox="0 0 24 24" width="14" height="14" style="fill:#25D366;flex-shrink:0;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      <span class="footer-logo" style="font-family:'Cormorant Garamond',serif;font-size:12px;font-weight:300;letter-spacing:2.5px;text-transform:uppercase;color:rgba(240,236,228,0.5);">Renders<span style="color:#c8a96e;">360</span></span>
+      <span class="footer-estudio-sep" style="color:rgba(240,236,228,0.15);font-size:9px;">·</span>
+      <span class="footer-estudio-name" style="font-size:9px;font-weight:300;letter-spacing:1px;color:rgba(240,236,228,0.3);font-family:'Outfit',sans-serif;white-space:nowrap;">Arq. Emanuel Manghi</span>
+    </a>
+
+    <!-- DERECHA — Contacto del cliente (oculto en demo; completar al entregar al cliente) -->
+    <!-- CLIENTE_EMAIL: cliente@email.com -->
+    <!-- CLIENTE_WA_NUM: 5491100000000 -->
+    <!-- CLIENTE_WA_TEXTO: +54 9 11 0000-0000 -->
+
+  </div>
+</div>
+
+<!-- MINI MAPA -->
+<div id="minimap">
+  <div id="minimap-label">
+    <span>Ubicación · planta</span>
+    <button id="minimap-toggle" onclick="toggleMinimap()" title="Minimizar">—</button>
+  </div>
+  <div id="minimap-img-wrap">
+    <img id="minimap-img" src="images/plano-martinez-blanco.png" alt="Planta del proyecto"/>
+    <div id="minimap-cone-wrap">
+      <svg id="minimap-cone" viewBox="-50 -50 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="cone-grad" cx="50%" cy="100%" r="80%">
+            <stop offset="0%" stop-color="#c8a96e" stop-opacity="0.55"/>
+            <stop offset="100%" stop-color="#c8a96e" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <path d="M 0 0 L -32 -42 A 53 53 0 0 1 32 -42 Z" fill="url(#cone-grad)" stroke="rgba(200,169,110,0.7)" stroke-width="0.8"/>
+        <circle cx="0" cy="0" r="5" fill="#c8a96e" stroke="#080808" stroke-width="1.5"/>
+      </svg>
+    </div>
+  </div>
+  <div id="minimap-scene-name">Living / Comedor</div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox">
+  <div id="lb-backdrop" onclick="cerrarLightbox()"></div>
+  <div id="lb-container">
+    <div id="lb-header">
+      <div id="lb-title-block">
+        <div id="lb-eyebrow">Detalle del proyecto</div>
+        <div id="lb-title">Vista</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div id="lb-counter">01 / 01</div>
+        <button id="lb-close" onclick="cerrarLightbox()" title="Cerrar">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="lb-img-wrap">
+      <img id="lb-img" src="" alt="Detalle"/>
+      <button class="lb-nav" id="lb-prev" onclick="lbNav(-1)" title="Anterior">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button class="lb-nav" id="lb-next" onclick="lbNav(1)" title="Siguiente">
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+    <div id="lb-caption">
+      <div id="lb-caption-text"></div>
+      <div id="lb-thumbs"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+/* ═══════════════════════════════════════════════════════
+   GALERÍAS LIGHTBOX
+═══════════════════════════════════════════════════════ */
+const GALERIAS = {
+  "parrilla": {
+    eyebrow: "Detalle contrafrente",
+    titulo: "Parrilla & Pérgola",
+    items: [
+      { src: "images/casa-martinez.png", caption: "Vista exterior del jardín. Pérgola de estructura metálica con vigas en voladizo. Parrilla integrada a la medianera con revestimiento de ladrillo visto refractario." },
+      { src: "images/parrilladetalle.png", caption: "Lámina técnica. Corte transversal, vista frontal y planta de la parrilla. Medidas generales: 1.60 × 0.85 × 2.25 m." }
+    ]
+  },
+  "cocina": {
+    eyebrow: "Detalle de ambiente",
+    titulo: "Cocina",
+    items: [
+      { src: "images/cocina-martinez-dia.png", caption: "Vista interior de la cocina. Isla central. Revestimientos Dekton y porcellanato." },
+      { src: "images/cocina-martinez-noche.png", caption: "Vista nocturna de la cocina con iluminación led." },
+      { src: "images/cocinadetalle.png", caption: "Lámina técnica de materiales y texturas." }
+    ]
+  },
+  "piscina": {
+    eyebrow: "Detalle de piscina",
+    titulo: "Pileta",
+    items: [
+      { src: "images/piscina-detalle.png", caption: "Vista jardin y piscina." }
+   ]
+  },
+  "planta": {
+    eyebrow: "Proyecto",
+    titulo: "Planta del proyecto",
+    fullscreen: true,
+    items: [
+      { src: "images/plano-martinez.png", caption: "Planta general del proyecto. Casa Martinez." }
+    ]
+  },
+  "living": {
+    eyebrow: "Detalle de ambiente",
+    titulo: "Living / Comedor",
+    items: [
+      { src: "images/living-dia-martinez.png", caption: "Vista del living de día. Carpinterías ampliadas hacia el jardín vertical y conexión visual con el escritorio." },
+      { src: "images/dia_living_martinez-1.png", caption: "Vista alternativa del living de día." },
+      { src: "images/living-noche-martinez.png", caption: "Vista nocturna del living. Iluminación cálida con cielorraso embutido y luz puntual sobre el jardín vertical." },
+      { src: "images/comedor-cocina-martinez.png", caption: "Vista del comedor integrado con la cocina al fondo. Mesa principal y barra desayunadora." }
+    ]
+  },
+  "frente": {
+    eyebrow: "Vista exterior",
+    titulo: "Frente",
+    items: [
+      { src: "images/frente.png", caption: "Vista frontal de la vivienda." }
+    ]
+  },
+};
+
+/* ═══════════════════════════════════════════════════════
+   ESCENAS
+═══════════════════════════════════════════════════════ */
+const ESCENAS = [
+  {
+    id: "living", label: "Living / Comedor", img: "images/living.jpg",
+    pitch: -5, yaw: 0,
+    hotspots: [
+      { targetScene: "cocina",  pitch: -15.5, yaw: -114.5, text: "Cocina" },
+      { targetScene: "jardin",  pitch: -12.7, yaw: 82.2,   text: "Jardín" }
+    ],
+    hotspotsLightbox: [
+      { pitch: -11.3, yaw: -15.3, text: "Living · Ver vistas", galeriaId: "living" }
+    ]
+  },
+  {
+    id: "cocina", label: "Cocina", img: "images/cocina.jpg",
+    pitch: -5, yaw: 0,
+    hotspots: [
+      { targetScene: "living", pitch: -3.9, yaw: 168.8, text: "Living" }
+    ],
+    hotspotsLightbox: [
+      { pitch: -11.3, yaw: -48.4, text: "Cocina · Ver detalle", galeriaId: "cocina" }
+    ]
+  },
+  {
+    id: "dormitorio", label: "Dormitorio", img: "images/dormitorio.jpg",
+    pitch: -5, yaw: 0,
+    hotspots: [
+      { targetScene: "living", pitch: -10, yaw: 120, text: "Living" },
+      { targetScene: "bano",   pitch: -10, yaw: -30, text: "Baño Suite" }
+    ]
+  },
+  {
+    id: "bano", label: "Baño Suite", img: "images/bano.jpg",
+    pitch: -5, yaw: 0,
+    hotspots: [
+      { targetScene: "dormitorio", pitch: -10, yaw: 180, text: "Dormitorio" }
+    ]
+  },
+  {
+    id: "jardin", label: "Jardín", img: "images/jardin.jpg",
+    pitch: 0, yaw: 0,
+    hotspots: [
+      { targetScene: "living", pitch: 0.3, yaw: 9.1, text: "Living" }
+    ],
+    hotspotsLightbox: [
+      { pitch: -2.9, yaw: -33.0, text: "Parrilla · Ver detalle", galeriaId: "parrilla" },
+      { pitch: -1.9, yaw: -161.7, text: "Piscina · Ver detalle", galeriaId: "piscina" }
+    ]
+  }
+];
+
+
+/* ── MINI MAPA ── */
+const PLANO_W = 3030, PLANO_H = 1052;
+function _pct(px, py, norte) { return { x: (px / PLANO_W) * 100, y: (py / PLANO_H) * 100, norte: norte }; }
+
+const MINIMAP_POS = {
+  "living":     _pct(1600,  600, 329),
+  "cocina":     _pct(1260,  730, 249),
+  "jardin":     _pct(2290,  540, 249)
+};
+
+function actualizarMinimap(idEscena) {
+  const pos = MINIMAP_POS[idEscena];
+  const wrap = document.getElementById('minimap-cone-wrap');
+  const nameEl = document.getElementById('minimap-scene-name');
+  const escena = ESCENAS.find(e => e.id === idEscena);
+  if (!pos) {
+    if (wrap) wrap.style.display = 'none';
+    if (nameEl && escena) nameEl.textContent = escena.label;
+    return;
+  }
+  if (wrap) {
+    wrap.style.display = 'block';
+    wrap.style.left = pos.x + '%';
+    wrap.style.top  = pos.y + '%';
+  }
+  if (nameEl && escena) nameEl.textContent = escena.label;
+}
+
+let minimapConeRAF = null;
+function loopMinimapCone() {
+  if (visor) {
+    const cono = document.getElementById('minimap-cone');
+    const pos = MINIMAP_POS[escenaActual];
+    if (cono && pos) {
+      const yaw = visor.getYaw();
+      cono.style.transform = `rotate(${yaw + pos.norte}deg)`;
+    }
+  }
+  minimapConeRAF = requestAnimationFrame(loopMinimapCone);
+}
+
+function toggleMinimap() {
+  const mm = document.getElementById('minimap');
+  const btn = document.getElementById('minimap-toggle');
+  mm.classList.toggle('collapsed');
+  btn.textContent = mm.classList.contains('collapsed') ? '+' : '—';
+}
+
+/* ═══════════════════════════════════════════════════════
+   FULLSCREEN
+═══════════════════════════════════════════════════════ */
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+    gaEvento('fullscreen_toggle', { state: 'enter', project: 'Casa Martinez' });
+  } else {
+    document.exitFullscreen().catch(() => {});
+    gaEvento('fullscreen_toggle', { state: 'exit', project: 'Casa Martinez' });
+  }
+}
+
+document.addEventListener('fullscreenchange', () => {
+  const isFS = !!document.fullscreenElement;
+  document.getElementById('fs-icon-expand').style.display  = isFS ? 'none' : 'block';
+  document.getElementById('fs-icon-compress').style.display = isFS ? 'block' : 'none';
+});
+
+function inicializarFullscreen() {
+  if (document.documentElement.requestFullscreen) {
+    document.getElementById('fullscreen-btn').classList.add('visible');
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   COMPARTIR
+═══════════════════════════════════════════════════════ */
+const SHARE_BASE  = 'https://bit.ly/CasaMartinez360';
+const SHARE_TITLE = 'Recorrido Virtual 360° — Casa Martinez';
+const SHARE_TEXT  = 'Mirá el recorrido virtual 360° de Casa Martinez';
+function getShareUrl() { return SHARE_BASE + (escenaActual ? '#' + escenaActual : ''); }
+
+function compartir() {
+  // Nativo solo en mobile real; desktop usa popup personalizado
+  if (window.innerWidth <= 600 && navigator.share) {
+    navigator.share({ title: SHARE_TITLE, text: SHARE_TEXT, url: getShareUrl() }).then(() => {
+      gaEvento('share_click', { channel: 'native_share', project: 'Casa Martinez' });
+    }).catch(() => {});
+    return;
+  }
+  const popup = document.getElementById('share-popup');
+  const isOpen = popup.classList.contains('open');
+  if (isOpen) {
+    cerrarSharePopup();
+  } else {
+    const waText = encodeURIComponent(SHARE_TEXT + '\n' + getShareUrl());
+    document.getElementById('share-wa').href = 'https://wa.me/?text=' + waText;
+    const mailSubject = encodeURIComponent(SHARE_TITLE);
+    const mailBody = encodeURIComponent(SHARE_TEXT + '\n\n' + getShareUrl());
+    popup.classList.add('open');
+    setTimeout(() => document.addEventListener('click', cierreExternoShare, { once: true }), 10);
+  }
+}
+
+function cerrarSharePopup() {
+  document.getElementById('share-popup').classList.remove('open');
+}
+
+function cierreExternoShare(e) {
+  const popup = document.getElementById('share-popup');
+  const btn = document.getElementById('share-btn');
+  if (!popup.contains(e.target) && !btn.contains(e.target)) {
+    cerrarSharePopup();
+  } else if (popup.classList.contains('open')) {
+    setTimeout(() => document.addEventListener('click', cierreExternoShare, { once: true }), 10);
+  }
+}
+
+function copiarLink() {
+  gaEvento('share_click', { channel: 'copy_link', project: 'Casa Martinez' });
+  navigator.clipboard.writeText(getShareUrl()).then(() => {
+    const el = document.getElementById('share-copied');
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 1800);
+  }).catch(() => {});
+  cerrarSharePopup();
+}
+
+function inicializarShare() {
+  document.getElementById('share-btn').classList.add('visible');
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   AUDIO AMBIENTE
+═══════════════════════════════════════════════════════ */
+const AUDIO_KEY = 'casa_martinez_audio_v1';
+const AUDIO_VOL_INTERIOR = 0.88;   // +35% respecto al anterior
+const AUDIO_VOL_EXTERIOR = 0.88;   // +35% respecto al anterior
+const AUDIO_FADE_MS = 800;
+
+const AUDIO_ESCENA_TIPO = {
+  living: 'interior',
+  cocina: 'interior',
+  dormitorio: 'interior',
+  bano: 'interior',
+  jardin: 'exterior'
+};
+
+let audioEncendido = false;
+let audioFadeRAF = null;
+
+function audioElements() {
+  return {
+    interior: document.getElementById('audio-interior'),
+    exterior: document.getElementById('audio-exterior')
+  };
+}
+
+function fadeAudio(el, targetVol, duracion) {
+  if (!el) return;
+  const startVol = el.volume;
+  const t0 = performance.now();
+  const step = (now) => {
+    const t = Math.min((now - t0) / duracion, 1);
+    let v = startVol + (targetVol - startVol) * t;
+    if (v < 0) v = 0; else if (v > 1) v = 1;
+    el.volume = v;
+    if (t < 1) requestAnimationFrame(step);
+    else if (targetVol === 0) { try { el.pause(); } catch(e){} }
+  };
+  requestAnimationFrame(step);
+}
+
+function aplicarAudioParaEscena(idEscena, fade = true) {
+  if (!audioEncendido) return;
+  const tipo = AUDIO_ESCENA_TIPO[idEscena];
+  const { interior, exterior } = audioElements();
+  const target = tipo === 'exterior' ? exterior : interior;
+  const otro   = tipo === 'exterior' ? interior : exterior;
+
+  try {
+    if (target.paused) {
+      target.volume = 0;
+      target.play().then(() => console.log('Audio playing:', tipo)).catch(err => console.warn('Audio play error:', err));
+    }
+  } catch(e){ console.warn('Audio exception:', e); }
+
+  const vol = tipo === 'exterior' ? AUDIO_VOL_EXTERIOR : AUDIO_VOL_INTERIOR;
+  fadeAudio(target, vol, fade ? AUDIO_FADE_MS : 0);
+  fadeAudio(otro,   0,             fade ? AUDIO_FADE_MS : 0);
+}
+
+function toggleAudio() {
+  audioEncendido = !audioEncendido;
+  console.log('Audio toggle:', audioEncendido ? 'ON' : 'OFF', 'Escena:', escenaActual);
+  gaEvento('audio_toggle', { audio_state: audioEncendido ? 'on' : 'off', project: 'Casa Martinez' });
+  const btn = document.getElementById('audio-toggle');
+  const { interior, exterior } = audioElements();
+
+  if (audioEncendido) {
+    btn.classList.remove('muted');
+    aplicarAudioParaEscena(escenaActual, true);
+  } else {
+    btn.classList.add('muted');
+    fadeAudio(interior, 0, AUDIO_FADE_MS);
+    fadeAudio(exterior, 0, AUDIO_FADE_MS);
+  }
+
+  try { localStorage.setItem(AUDIO_KEY, audioEncendido ? '1' : '0'); } catch(e){}
+}
+
+function inicializarAudio() {
+  document.getElementById('audio-toggle').classList.add('visible');
+
+  let estado = '0';
+  try { estado = localStorage.getItem(AUDIO_KEY) || '0'; } catch(e){}
+
+  if (estado === '1') {
+    audioEncendido = true;
+    document.getElementById('audio-toggle').classList.remove('muted');
+    aplicarAudioParaEscena(escenaActual, false);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   INDICADOR PRIMERA VEZ
+═══════════════════════════════════════════════════════ */
+const HINT_KEY = 'casa_martinez_tour_visitado_v1';
+let hintTimer = null;
+let hintActivo = false;
+
+function mostrarIndicadorPrimeraVez() {
+  try { if (localStorage.getItem(HINT_KEY)) return; } catch(e) {}
+
+  hintActivo = true;
+  const overlay = document.getElementById('hint-overlay');
+  overlay.classList.add('show');
+
+  hintTimer = setTimeout(ocultarIndicadorPrimeraVez, 7000);
+
+  const panorama = document.getElementById('panorama');
+  ['mousedown', 'touchstart', 'wheel'].forEach(ev => {
+    panorama.addEventListener(ev, ocultarIndicadorPrimeraVez, { once: true, passive: true });
+  });
+}
+
+function ocultarIndicadorPrimeraVez() {
+  if (!hintActivo) return;
+  hintActivo = false;
+  document.getElementById('hint-overlay').classList.remove('show');
+  if (hintTimer) { clearTimeout(hintTimer); hintTimer = null; }
+  try { localStorage.setItem(HINT_KEY, '1'); } catch(e) {}
+}
+
+/* ═══════════════════════════════════════════════════════
+   MOTOR
+═══════════════════════════════════════════════════════ */
+let visor = null;
+let escenaActual = ESCENAS[0].id;
+let tourIniciado = false;
+let lbOverlayRAF = null;
+let lbOverlayItems = [];
+let lbGaleriaActual = null;
+let lbIndex = 0;
+
+/* — Lightbox — */
+function abrirLightbox(galeriaId, idx) {
+  lbGaleriaActual = GALERIAS[galeriaId];
+  if (!lbGaleriaActual) return;
+  gaEvento('lightbox_open', { gallery_id: galeriaId, gallery_title: lbGaleriaActual.titulo, project: 'Casa Martinez' });
+  lbIndex = idx || 0;
+  document.getElementById('lb-eyebrow').textContent = lbGaleriaActual.eyebrow;
+  document.getElementById('lb-title').textContent   = lbGaleriaActual.titulo;
+  document.getElementById('lb-thumbs').innerHTML = '';
+  lbGaleriaActual.items.forEach((item, i) => {
+    const t = document.createElement('img');
+    t.src = item.src; t.className = 'lb-thumb';
+    t.onclick = () => lbSetImagen(i, true);
+    document.getElementById('lb-thumbs').appendChild(t);
+  });
+  lbSetImagen(lbIndex, false);
+  const lb = document.getElementById('lightbox');
+  lb.classList.add('open');
+  if (lbGaleriaActual.fullscreen) {
+    lb.classList.add('fullscreen');
+  } else {
+    lb.classList.remove('fullscreen');
+  }
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+  lbResetZoom();
+}
+
+function lbNav(dir) {
+  if (!lbGaleriaActual) return;
+  lbSetImagen((lbIndex + dir + lbGaleriaActual.items.length) % lbGaleriaActual.items.length, true);
+}
+
+function lbSetImagen(idx, animate) {
+  if (!lbGaleriaActual) return;
+  const img     = document.getElementById('lb-img');
+  const counter = document.getElementById('lb-counter');
+  const caption = document.getElementById('lb-caption-text');
+  const set = () => {
+    lbResetZoom();
+    img.src = lbGaleriaActual.items[idx].src;
+    caption.textContent = lbGaleriaActual.items[idx].caption;
+    lbIndex = idx;
+    counter.textContent = String(idx+1).padStart(2,'0') + ' / ' + String(lbGaleriaActual.items.length).padStart(2,'0');
+    document.querySelectorAll('.lb-thumb').forEach((t,i) => t.classList.toggle('active', i===idx));
+  };
+  if (animate) {
+    img.classList.add('fade');
+    setTimeout(() => { set(); img.onload = () => img.classList.remove('fade'); }, 280);
+  } else { set(); }
+}
+
+document.addEventListener('keydown', e => {
+  const lb = document.getElementById('lightbox');
+  if (!lb.classList.contains('open')) return;
+  if (e.key === 'Escape')     cerrarLightbox();
+  if (e.key === 'ArrowRight') lbNav(1);
+  if (e.key === 'ArrowLeft')  lbNav(-1);
+});
+
+/* — Zoom en imágenes del lightbox — */
+let lbZoom = 1;
+let lbPanX = 0, lbPanY = 0;
+let lbDragging = false;
+let lbDragStart = { x: 0, y: 0 };
+let lbPinchDist = 0;
+const LB_ZOOM_MIN = 1;
+const LB_ZOOM_MAX = 4;
+const LB_ZOOM_STEP = 0.25;
+
+function lbApplyTransform() {
+  const img = document.getElementById('lb-img');
+  const wrap = document.getElementById('lb-img-wrap');
+  img.style.transform = `scale(${lbZoom}) translate(${lbPanX}px, ${lbPanY}px)`;
+  wrap.classList.toggle('zoomed', lbZoom > 1);
+}
+
+function lbResetZoom() {
+  lbZoom = 1; lbPanX = 0; lbPanY = 0;
+  lbApplyTransform();
+}
+
+function lbClampPan() {
+  if (lbZoom <= 1) { lbPanX = 0; lbPanY = 0; return; }
+  const img = document.getElementById('lb-img');
+  const limitX = Math.max(0, (img.offsetWidth  * (lbZoom - 1)) / (2 * lbZoom));
+  const limitY = Math.max(0, (img.offsetHeight * (lbZoom - 1)) / (2 * lbZoom));
+  lbPanX = Math.max(-limitX, Math.min(limitX, lbPanX));
+  lbPanY = Math.max(-limitY, Math.min(limitY, lbPanY));
+}
+
+(function initLbZoom() {
+  const wrap = document.getElementById('lb-img-wrap');
+  if (!wrap) return;
+
+  /* Scroll — zoom desktop */
+  wrap.addEventListener('wheel', e => {
+    if (!document.getElementById('lightbox').classList.contains('open')) return;
+    e.preventDefault();
+    const dir = e.deltaY < 0 ? 1 : -1;
+    lbZoom = Math.max(LB_ZOOM_MIN, Math.min(LB_ZOOM_MAX, lbZoom + dir * LB_ZOOM_STEP));
+    lbClampPan();
+    lbApplyTransform();
+  }, { passive: false });
+
+  /* Doble click — reset */
+  wrap.addEventListener('dblclick', e => {
+    e.preventDefault();
+    if (lbZoom > 1) { lbResetZoom(); } 
+    else { lbZoom = 2.5; lbApplyTransform(); }
+  });
+
+  /* Drag para paneo (desktop) */
+  wrap.addEventListener('mousedown', e => {
+    if (lbZoom <= 1) return;
+    e.preventDefault();
+    lbDragging = true;
+    lbDragStart = { x: e.clientX - lbPanX * lbZoom, y: e.clientY - lbPanY * lbZoom };
+    wrap.classList.add('dragging');
+  });
+  window.addEventListener('mousemove', e => {
+    if (!lbDragging) return;
+    lbPanX = (e.clientX - lbDragStart.x) / lbZoom;
+    lbPanY = (e.clientY - lbDragStart.y) / lbZoom;
+    lbClampPan();
+    lbApplyTransform();
+  });
+  window.addEventListener('mouseup', () => {
+    lbDragging = false;
+    document.getElementById('lb-img-wrap').classList.remove('dragging');
+  });
+
+  /* Pinch zoom + drag (mobile) */
+  wrap.addEventListener('touchstart', e => {
+    if (!document.getElementById('lightbox').classList.contains('open')) return;
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      lbPinchDist = Math.hypot(dx, dy);
+    } else if (e.touches.length === 1 && lbZoom > 1) {
+      lbDragging = true;
+      lbDragStart = { x: e.touches[0].clientX - lbPanX * lbZoom, y: e.touches[0].clientY - lbPanY * lbZoom };
+    }
+  }, { passive: false });
+
+  wrap.addEventListener('touchmove', e => {
+    if (!document.getElementById('lightbox').classList.contains('open')) return;
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const scale = dist / lbPinchDist;
+      lbZoom = Math.max(LB_ZOOM_MIN, Math.min(LB_ZOOM_MAX, lbZoom * scale));
+      lbPinchDist = dist;
+      lbClampPan();
+      lbApplyTransform();
+    } else if (e.touches.length === 1 && lbDragging) {
+      e.preventDefault();
+      lbPanX = (e.touches[0].clientX - lbDragStart.x) / lbZoom;
+      lbPanY = (e.touches[0].clientY - lbDragStart.y) / lbZoom;
+      lbClampPan();
+      lbApplyTransform();
+    }
+  }, { passive: false });
+
+  wrap.addEventListener('touchend', () => { lbDragging = false; });
+})();
+
+
+/* — Overlay unificado de hotspots — */
+function asegurarWrap() {
+  let wrap = document.getElementById('lb-hotspot-wrap');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'lb-hotspot-wrap';
+    wrap.style.cssText = 'position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:150;';
+    document.getElementById('panorama').appendChild(wrap);
+  }
+  return wrap;
+}
+
+function crearHotspotNav(item) {
+  const el = document.createElement('div');
+  el.className = 'hs-circle hs-nav';
+  el.innerHTML = `
+    <div class="hs-ring"></div>
+    <div class="hs-ring delay"></div>
+    <div class="hs-dot"></div>
+    <div class="hs-tooltip">${item.text}</div>
+  `;
+  el.addEventListener('click', e => { e.stopPropagation(); irA(item.targetScene); });
+  return el;
+}
+
+function crearHotspotLb(item) {
+  const el = document.createElement('div');
+  el.className = 'hs-circle hs-lb';
+  el.innerHTML = `
+    <div class="hs-ring"></div>
+    <div class="hs-icon">
+      <svg viewBox="0 0 24 24" width="14" height="14" style="fill:none;stroke:#c8a96e;stroke-width:1.8">
+        <circle cx="12" cy="13" r="3.2"/>
+        <path d="M3 8.5V17a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5a2 2 0 0 0-2-2h-2.5L15 4.5h-6L7.5 6.5H5a2 2 0 0 0-2 2z"/>
+      </svg>
+    </div>
+    <div class="hs-tooltip">${item.text}</div>
+  `;
+  el.addEventListener('click', e => { e.stopPropagation(); abrirLightbox(item.galeriaId, 0); });
+  return el;
+}
+
+function iniciarOverlayLightbox(items) {
+  detenerOverlayLightbox();
+  const wrap = asegurarWrap();
+  wrap.innerHTML = '';
+  lbOverlayItems = [];
+  items.forEach(item => {
+    const el = crearHotspotLb(item);
+    wrap.appendChild(el);
+    lbOverlayItems.push({ pitch: item.pitch, yaw: item.yaw, el });
+  });
+  loopOverlay();
+}
+
+function iniciarOverlayNavegacion(items) {
+  const wrap = asegurarWrap();
+  items.forEach(item => {
+    const el = crearHotspotNav(item);
+    wrap.appendChild(el);
+    lbOverlayItems.push({ pitch: item.pitch, yaw: item.yaw, el });
+  });
+  if (!lbOverlayRAF) loopOverlay();
+}
+
+function loopOverlay() {
+  if (!visor) { lbOverlayRAF = requestAnimationFrame(loopOverlay); return; }
+  const container = document.getElementById('panorama');
+  const W = container.offsetWidth, H = container.offsetHeight;
+  const hfov = visor.getHfov(), aspect = W/H, vfov = hfov/aspect;
+  const cPitch = visor.getPitch(), cYaw = visor.getYaw();
+  lbOverlayItems.forEach(({ pitch, yaw, el }) => {
+    let dYaw = yaw - cYaw;
+    while (dYaw >  180) dYaw -= 360;
+    while (dYaw < -180) dYaw += 360;
+    const dPitch = pitch - cPitch;
+    if (Math.abs(dYaw) > hfov*0.6 || Math.abs(dPitch) > vfov*0.6) {
+      el.style.visibility = 'hidden';
+    } else {
+      el.style.visibility = 'visible';
+      el.style.left = (W/2 + (dYaw/(hfov/2))*(W/2)) + 'px';
+      el.style.top  = (H/2 - (dPitch/(vfov/2))*(H/2)) + 'px';
+    }
+  });
+  lbOverlayRAF = requestAnimationFrame(loopOverlay);
+}
+
+function detenerOverlayLightbox() {
+  if (lbOverlayRAF) { cancelAnimationFrame(lbOverlayRAF); lbOverlayRAF = null; }
+  lbOverlayItems = [];
+  const wrap = document.getElementById('lb-hotspot-wrap');
+  if (wrap) wrap.innerHTML = '';
+}
+
+/* — Core — */
+function entrarAlTour() {
+  gaEvento('tour_start', { project: 'Casa Martinez' });
+  const intro = document.getElementById('intro');
+  const loading = document.getElementById('loading-screen');
+  const bar = document.getElementById('loading-bar');
+  intro.classList.add('out');
+  setTimeout(() => {
+    loading.style.opacity = '1'; loading.style.visibility = 'visible';
+    bar.style.transition = 'left 1.5s ease'; bar.style.left = '0';
+    setTimeout(() => {
+      generarPanel();
+      /* SEGURIDAD — solo caracteres alfanuméricos/guión; evita inyección via hash */
+      const rawHash = window.location.hash.slice(1);
+      const safeHash = /^[a-z0-9_-]+$/i.test(rawHash) ? rawHash : '';
+      const escenaInicial = ESCENAS.find(e => e.id === safeHash) ? safeHash : ESCENAS[0].id;
+      cargarEscena(escenaInicial);
+      tourIniciado = true;
+      setTimeout(() => {
+        loading.style.opacity='0'; loading.style.visibility='hidden';
+        const mm = document.getElementById('minimap'); mm.style.opacity='1'; mm.style.pointerEvents='all';
+        if (!minimapConeRAF) loopMinimapCone();
+        inicializarAudio();
+        inicializarShare();
+        inicializarFullscreen();
+        setTimeout(mostrarIndicadorPrimeraVez, 600);
+      }, 800);
+    }, 1400);
+  }, 800);
+}
+
+function volverIntro() {
+  if (!tourIniciado) return;
+  document.getElementById('intro').classList.remove('out');
+}
+
+/* Configuración de la botonera inferior */
+const PANEL_ITEMS = [
+  { type: "lightbox", galeriaId: "planta",  label: "Plano",            num: "00" },
+  { type: "lightbox", galeriaId: "frente",  label: "Frente",           num: "01" },
+  { type: "nav",      escenaId:  "living",  label: "Living / Comedor", num: "02" },
+  { type: "nav",      escenaId:  "cocina",  label: "Cocina",           num: "03" },
+  { type: "nav",      escenaId:  "dormitorio", label: "Dormitorio",    num: "04" },
+  { type: "nav",      escenaId:  "jardin",  label: "Jardín",           num: "05" }
+];
+
+function generarPanel() {
+  const grid = document.getElementById('scenes-grid');
+  if (grid.children.length > 0) return;
+  const estilo = "display:flex;align-items:center;gap:10px;padding:10px 18px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:3px;cursor:pointer;color:rgba(240,236,228,0.45);font-size:12px;font-weight:300;letter-spacing:1px;font-family:Outfit,sans-serif;transition:all 0.25s;";
+
+  PANEL_ITEMS.forEach(item => {
+    const btn = document.createElement('button');
+    btn.id = 'btn-' + (item.escenaId || item.galeriaId);
+    btn.style.cssText = estilo;
+    btn.innerHTML = `<span style="font-family:'Cormorant Garamond',serif;font-size:15px;color:#c8a96e;font-weight:300;opacity:0.6;">${item.num}</span>${item.label}`;
+    if (item.type === 'lightbox') {
+      btn.onclick = () => abrirLightbox(item.galeriaId, 0);
+    } else {
+      btn.onclick = () => irA(item.escenaId);
+    }
+    grid.appendChild(btn);
+  });
+}
+
+function irA(idEscena) {
+  if (idEscena === escenaActual) return;
+  if (hintActivo) ocultarIndicadorPrimeraVez();
+  const overlay = document.getElementById('transition-overlay');
+  overlay.style.opacity = '1'; overlay.style.pointerEvents = 'all';
+  setTimeout(() => {
+    cargarEscena(idEscena);
+    setTimeout(() => { overlay.style.opacity='0'; overlay.style.pointerEvents='none'; }, 350);
+  }, 350);
+}
+
+function cargarEscena(idEscena) {
+  const escena = ESCENAS.find(e => e.id === idEscena);
+  if (!escena) return;
+  escenaActual = idEscena;
+  document.getElementById('scene-label').textContent = escena.label;
+  gaEvento('scene_view', { scene_name: escena.label, scene_id: idEscena, project: 'Casa Martinez' });
+  history.replaceState(null, '', '#' + idEscena);
+  actualizarMinimap(idEscena);
+  aplicarAudioParaEscena(idEscena, true);
+  detenerOverlayLightbox();
+  if (visor) { try { visor.destroy(); } catch(e) {} visor = null; }
+  visor = pannellum.viewer('panorama', {
+    type:'equirectangular', panorama:escena.img,
+    autoLoad:true, autoRotate:-1.5, autoRotateInactivityDelay:4000,
+    compass:false, showFullscreenCtrl:false, showZoomCtrl:false,
+    pitch:escena.pitch, yaw:escena.yaw,
+    hfov: (window.innerWidth <= 600 ? 75 : 100),
+    minHfov:50, maxHfov:120,
+    minYaw: (escena.minYaw !== undefined ? escena.minYaw : -180),
+    maxYaw: (escena.maxYaw !== undefined ? escena.maxYaw :  180),
+    hotSpots:[],
+    strings:{ loadingLabel:"", bylineLabel:"", noPanoramaError:"No se encontró la imagen.", fileAccessError:"No se pudo cargar: %s", genericWebGLError:"WebGL no soportado.", textureSizeError:"Imagen demasiado grande.", unknownError:"Error desconocido." }
+  });
+  setTimeout(() => {
+    if (escena.hotspotsLightbox && escena.hotspotsLightbox.length > 0) {
+      iniciarOverlayLightbox(escena.hotspotsLightbox);
+    } else {
+      detenerOverlayLightbox();
+    }
+    if (escena.hotspots && escena.hotspots.length > 0) {
+      iniciarOverlayNavegacion(escena.hotspots);
+    }
+  }, 800);
+}
+</script>
+</body>
+</html>
